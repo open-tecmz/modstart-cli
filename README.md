@@ -1,5 +1,7 @@
 # modstart-cli
 
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
 通过后台生成的凭证登录 ModStart 站点，直接调用站点后台已有接口的命令行工具。
 
 - 所有命令统一输出 JSON（中文不转义），适合脚本与 AI 工具解析
@@ -50,7 +52,7 @@ sudo mv modstart-cli /usr/local/bin/
 modstart-cli version
 ```
 
-- 压缩包内即单个可执行文件（解压后直接是 `modstart-cli` / `modstart-cli.exe`）
+- 压缩包内含可执行文件（解压后即 `modstart-cli` / `modstart-cli.exe`）与 `LICENSE`、`README.md`
 - `latest` 里同时提供未压缩的可执行文件与 `checksums.txt`（sha256 校验）
 - 滚动版本号形如 `0.1.0+<提交短 SHA>`；正式版本以 `vX.Y.Z` 标签发布（同样标记为 Latest）
 
@@ -183,3 +185,17 @@ checksums.txt
 ```
 
 本地复现同样流程：`make update-version 0.1.0 && make dist`，产物在 `dist/`。
+
+## 许可证
+
+本项目基于 [Apache License 2.0](LICENSE) 开源。
+
+```
+Copyright 2026 open-tecmz
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+```

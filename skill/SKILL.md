@@ -41,7 +41,7 @@ sudo mv modstart-cli /usr/local/bin/
 modstart-cli version
 ```
 
-- 压缩包内是单个可执行文件，解压后即 `modstart-cli`（Windows 为 `modstart-cli.exe`）
+- 压缩包内是可执行文件（`modstart-cli`，Windows 为 `modstart-cli.exe`）以及 `LICENSE`、`README.md`
 - `latest` 里还有裸可执行文件与 `checksums.txt`（sha256）；滚动版本号形如 `0.1.0+<提交短 SHA>`
 - 正式版本以 `vX.Y.Z` 标签发布
 

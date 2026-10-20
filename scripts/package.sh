@@ -47,10 +47,19 @@ for p in $PLATFORMS; do
 	cp "$src" "$stage/$TARGET$ext"
 	chmod +x "$stage/$TARGET$ext"
 
+	# Ship the license (and README) with every binary, as Apache-2.0 requires.
+	contents=("$TARGET$ext")
+	for doc in LICENSE README.md; do
+		if [ -f "$doc" ]; then
+			cp "$doc" "$stage/$doc"
+			contents+=("$doc")
+		fi
+	done
+
 	if [ "$os" = "windows" ]; then
-		(cd "$stage" && zip -q "$DIST_ABS/$name.zip" "$TARGET$ext")
+		(cd "$stage" && zip -q "$DIST_ABS/$name.zip" "${contents[@]}")
 	else
-		tar -C "$stage" -czf "$DIST_ABS/$name.tar.gz" "$TARGET"
+		tar -C "$stage" -czf "$DIST_ABS/$name.tar.gz" "${contents[@]}"
 	fi
 
 	# Also keep the raw executable: some scripts prefer it over extracting an archive.

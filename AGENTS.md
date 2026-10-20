@@ -22,6 +22,7 @@
 | `lib/version/` | 版本号（Makefile 自动写入） |
 | `scripts/package.sh` | 打包各平台压缩包 + `checksums.txt` |
 | `.github/workflows/release.yml` | 推送 `main` 自动发布 `latest`（各平台二进制） |
+| `LICENSE` | Apache License 2.0 |
 | `Makefile` | 多平台编译入口 |
 
 ## 核心机制
@@ -58,7 +59,8 @@ make test   # 运行测试
 - 编译产物输出到 `build/`，发布包输出到 `dist/`。
 - 发布：推送 `main` 触发 `.github/workflows/release.yml`，用 `make dist` 交叉编译并滚动更新 `latest` 发布
   （版本号 = 源版本号 + `+<提交短 SHA>`）；推送 `vX.Y.Z` 标签则发布同名正式版本。
-  产物命名 `modstart-cli-<os>-<arch>[.exe|.tar.gz|.zip]`，另有 `checksums.txt`（sha256）。
+  产物命名 `modstart-cli-<os>-<arch>[.exe|.tar.gz|.zip]`，另有 `checksums.txt`（sha256），
+  压缩包内附 `LICENSE` 与 `README.md`。
 - 新增平台时同步修改 `Makefile` 的 `PLATFORMS` 与 `scripts/package.sh` 的 `PLATFORMS`。
 
 ## 开发规范
