@@ -1,0 +1,90 @@
+name: release
+
+# 打包各平台二进制并发布：
+#   - 推送 main           -> 滚动更新 `latest` 发布（标记为 Latest），版本号 = 源版本号 + 提交短 SHA
+#   - 推送 vX.Y.Z 标签    -> 发布同名版本（同样标记为 Latest）
+# 两条路径都会上传 darwin/linux/windows × amd64/arm64 的压缩包、裸可执行文件与 checksums.txt。
+on:
+  push:
+    branches: [main]
+    tags: ['v*.*.*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # 标签推送使用标签名作为版本；main 使用源版本号 + 提交短 SHA，
+      # 便于区分滚动构建与某个正式版本。
+      - name: Resolve release identity
+        id: meta
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            version="${GITHUB_REF_NAME}"
+            tag="${GITHUB_REF_NAME}"
+          else
+            base="$(sed -n 's/^var VERSION = "\(.*\)"$/\1/p' lib/version/version.go)"
+            if [ -z "${base}" ]; then
+              echo "无法从 lib/version/version.go 读取版本号" >&2
+              exit 1
+            fi
+            version="${base}+${GITHUB_SHA::7}"
+            tag="latest"
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+
+      - name: Set version
+        run: make update-version "${{ steps.meta.outputs.version }}"
+
+      - name: Test
+        run: make test
+
+      # 交叉编译 6 个平台 + 打压缩包 + 生成 checksums.txt，产物在 dist/
+      - name: Build and package
+        run: make dist
+
+      - name: Show artifacts
+        run: ls -l dist
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          files=(dist/*)
+          notes=$(printf '%s\n' \
+            "版本：${VERSION}" \
+            "提交：${GITHUB_SHA}" \
+            "" \
+            "对应当前平台下载解压即可使用，例如 macOS（Apple Silicon）：" \
+            "" \
+            "    curl -L -o mscli.tar.gz https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/modstart-cli-darwin-arm64.tar.gz" \
+            "    tar xzf mscli.tar.gz" \
+            "    sudo mv modstart-cli /usr/local/bin/" \
+            "    modstart-cli version" \
+            "" \
+            "完整说明见 README，文件校验见 checksums.txt。")
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            gh release upload "${TAG}" "${files[@]}" --clobber
+            gh release edit "${TAG}" --title "${TAG}" --notes "${notes}" --latest
+          else
+            gh release create "${TAG}" "${files[@]}" --title "${TAG}" --notes "${notes}" --latest
+          fi

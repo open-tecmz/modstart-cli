@@ -1,0 +1,11 @@
+/build/
+/dist/
+.idea/
+.DS_Store
+/config.json
+/*.pid
+
+# OpenCode
+/_temp/
+/dist/
+DEV_*.md
